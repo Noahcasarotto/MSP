@@ -1,0 +1,16 @@
+# Python venv & caches
+.venv/
+__pycache__/
+.cache/
+*.pyc
+*.pyo
+
+# Local env & logs
+.env
+env_content.txt
+msp_run.log
+
+# OS/editor
+.DS_Store
+
+.env.bak
