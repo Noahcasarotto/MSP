@@ -14,3 +14,11 @@ msp_run.log
 .DS_Store
 
 .env.bak
+
+# Logs
+logs/
+
+# DuckDB artifacts (keep CSVs tracked)
+north_america_msp.duckdb
+*.duckdb
+*.duckdb.wal
