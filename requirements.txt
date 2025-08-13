@@ -1,3 +1,5 @@
 duckdb>=0.9
 pandas>=2.0
 typer[all]>=0.12.3
+requests>=2.31
+python-dotenv>=1.0

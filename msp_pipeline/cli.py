@@ -11,6 +11,8 @@ import typer
 from pathlib import Path
 
 from . import database as db
+from . import people as ppl
+from . import clean as cln
 
 app = typer.Typer(add_completion=False, help="MSP data processing CLI")
 
@@ -30,6 +32,57 @@ def load_csv(
         typer.echo(f"[ok] Table '{table}' now contains {rows:,} rows in {db_path}")
     else:
         typer.echo("[ok] Load complete.")
+
+
+# ------------------------------------------------------------------
+# Discover LinkedIn profiles via Google CSE
+# ------------------------------------------------------------------
+
+
+@app.command("discover-people")
+def discover_people(
+    input_csv: Path = typer.Option(
+        "data/processed/north_america_msp_summaries.csv",
+        exists=True,
+        help="Companies CSV (summaries with 'name' column)",
+    ),
+    output_csv: Path = typer.Option(
+        "data/processed/linkedin_people.csv",
+        help="Output CSV of discovered profile URLs",
+    ),
+    limit_companies: int = typer.Option(0, help="Process only first N companies"),
+    per_company: int = typer.Option(25, help="Max profiles kept per company"),
+    pause: float = typer.Option(0.2, help="Delay between Google queries (s)"),
+    verbose: bool = typer.Option(False, '--verbose', '-v', help='Print progress for each company'),
+):
+    """Discover public LinkedIn profile URLs for employees."""
+
+    rows = ppl.discover_people(
+        input_csv=input_csv,
+        output_csv=output_csv,
+        limit_companies=limit_companies,
+        per_company=per_company,
+        pause_s=pause,
+        verbose=verbose,
+    )
+    typer.echo(f"[ok] Discovered {rows} LinkedIn profile links → {output_csv}")
+
+
+@app.command("dedupe-summaries")
+def dedupe_summaries(
+    input_csv: Path = typer.Option(
+        "data/processed/north_america_msp_summaries.csv", exists=True, help="Input summaries CSV"
+    ),
+    output_csv: Path = typer.Option(
+        "data/processed/north_america_msp_summaries_clean.csv", help="Output deduped CSV"
+    ),
+    keep: str = typer.Option("first", help="Keep 'first' or 'last' occurrence of duplicates"),
+):
+    total, unique = cln.dedupe_summaries(input_csv=input_csv, output_csv=output_csv, keep=keep)
+    removed = total - unique
+    typer.echo(
+        f"[ok] Dedupe complete: total={total:,}, unique={unique:,}, removed={removed:,} -> {output_csv}"
+    )
 
 
 def _run():  # helper for `python -m msp_pipeline`
