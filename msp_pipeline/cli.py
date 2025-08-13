@@ -68,6 +68,30 @@ def discover_people(
     typer.echo(f"[ok] Discovered {rows} LinkedIn profile links → {output_csv}")
 
 
+# ------------------------------------------------------------------
+# Load database with companies & people
+# ------------------------------------------------------------------
+
+
+@app.command("load-db")
+def load_db(
+    db_path: Path = typer.Option("north_america_msp.duckdb", help="DuckDB file"),
+    companies_csv: Path = typer.Option("data/processed/north_america_msp_summaries_clean.csv", exists=True),
+    people_csv: Path = typer.Option("data/processed/linkedin_people.csv", exists=True),
+):
+    """Populate DuckDB with companies + people and link by name."""
+    from . import database as dbmod
+
+    comps, ppl = dbmod.populate_companies_people(
+        db_path=db_path,
+        companies_csv=companies_csv,
+        people_csv=people_csv,
+    )
+    typer.echo(
+        f"[ok] Loaded {comps:,} companies & {ppl:,} people into {db_path}"
+    )
+
+
 @app.command("dedupe-summaries")
 def dedupe_summaries(
     input_csv: Path = typer.Option(
